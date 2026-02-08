@@ -36,8 +36,6 @@
 #include "Core.h"
 #include "Tables.h"
 
-#define VERSION_STRING "version 2.0"
-
 class UserInterface : IUserInterface
 {
 public:

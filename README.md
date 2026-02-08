@@ -48,7 +48,18 @@ replace the lathe change gears or quick-change gearbox with an electronic virtua
 set to almost any ratio.  The lathe will continue to operate normally, with the operator closing and opening
 the half-nuts to control feeding and threading.
 
-### External Connections
+## Hardware Configuration
+
+#### LaunchXL-F280049C Switches
+
+These are the required switch settings
+* `S3.1 = 0` Connects eQEP1 to J12
+* `S3.2 = 0` Connects eQEP2 to J13
+* `S4 = 1` Connects eQEP1 to J12
+* `S9 = 1` (default) -- Connects GPIO32/33 to BoosterPack site 2 pins
+* `S8 = 1` Allows use of Serial A
+
+S6 can be in any position.  0 is the default.
 
 #### Serial Port to Nextion Display
 The serial is mapped to the microcontrollers Serial Port B

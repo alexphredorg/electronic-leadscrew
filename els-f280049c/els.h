@@ -73,4 +73,6 @@ char *charToHex(unsigned char ch, char *string);
 #include "UserInterface.h"
 #include "Debug.h"
 
+#define VERSION_STRING "version 2.1"
+
 #endif /* ELS_H_ */

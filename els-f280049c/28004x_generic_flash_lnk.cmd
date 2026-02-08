@@ -104,7 +104,7 @@ SECTIONS
    .cio             : > RAMLS0,    PAGE = 0
    .stack           : > RAMM1,     PAGE = 1
    .ebss            : > RAMLS5,    PAGE = 1
-   .esysmem         : > RAMLS5,    PAGE = 1   
+   .esysmem         : > RAMLS6,    PAGE = 1   
    .econst          : > FLASH_BANK0_SEC4,    PAGE = 0, ALIGN(4)
 
    ramgs0           : > RAMGS0,    PAGE = 1

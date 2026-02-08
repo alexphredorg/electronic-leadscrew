@@ -36,41 +36,53 @@
 SerialPort *__serialPortA = NULL;
 SerialPort *__serialPortB = NULL;
 
+//#pragma CODE_SECTION(".TI.ramfunc");
 __interrupt void sciaRxISR(void)
 {
     __serialPortA->rxisr();
 }
 
+//#pragma CODE_SECTION(".TI.ramfunc");
 __interrupt void sciaTxISR(void)
 {
     __serialPortA->txisr();
 }
 
+//#pragma CODE_SECTION(".TI.ramfunc");
 __interrupt void scibRxISR(void)
 {
     __serialPortB->rxisr();
 }
 
+//#pragma CODE_SECTION(".TI.ramfunc");
 __interrupt void scibTxISR(void)
 {
     __serialPortB->txisr();
 }
 
+//#pragma CODE_SECTION(".TI.ramfunc");
 SerialPort::SerialPort(const uint32_t sciBase)
 {
     _sciBase = sciBase;
     _bufferTail = 0;
     _bufferHead = 0;
     _bufferFull = false;
+    memset(_buffer, 0,  sizeof(_buffer));
 }
 
 SerialPort::~SerialPort()
 {
 }
 
+//#pragma CODE_SECTION(".TI.ramfunc");
 void SerialPort::initHardware(void)
 {
+    ASSERT((_sciBase == SCIA_BASE) || (_sciBase == SCIB_BASE));
+
     uint32_t rxInterrupt = (_sciBase == SCIA_BASE) ? INT_SCIA_RX : INT_SCIB_RX;
+
+    // dead loop to give the screen time to initialize
+    for (int i = 0; i < 10000; i++);
 
     if (_sciBase == SCIA_BASE) {
         // GPIO37/35 map to pins 9 (SCIATX) and 10 (SCIARX)
@@ -111,6 +123,11 @@ void SerialPort::initHardware(void)
         Interrupt_register(INT_SCIB_RX, scibRxISR);
     }
 
+    //
+    // initialize the port
+    //
+    SCI_performSoftwareReset(_sciBase);
+
     // 9600 n81
     SCI_setConfig(
             _sciBase,
@@ -118,15 +135,16 @@ void SerialPort::initHardware(void)
             9600,
             (SCI_CONFIG_WLEN_8 | SCI_CONFIG_STOP_ONE | SCI_CONFIG_PAR_NONE));
     SCI_resetChannels(_sciBase);
-    SCI_clearInterruptStatus(_sciBase, SCI_INT_TXFF | SCI_INT_RXFF);
     SCI_resetRxFIFO(_sciBase);
-    SCI_resetTxFIFO(_sciBase);
+    // SCI_resetTxFIFO(_sciBase);
+    SCI_clearInterruptStatus(_sciBase, /* SCI_INT_TXFF | */ SCI_INT_RXFF);
     SCI_enableFIFO(_sciBase);
     SCI_enableModule(_sciBase);
     SCI_performSoftwareReset(_sciBase);
 
     SCI_setFIFOInterruptLevel(_sciBase, SCI_FIFO_TX0, SCI_FIFO_RX1);
     SCI_enableInterrupt(_sciBase, /* SCI_INT_TXFF | */ SCI_INT_RXFF);
+    SCI_clearInterruptStatus(_sciBase, /* SCI_INT_TXFF | */ SCI_INT_RXFF);
 
     Interrupt_enable(rxInterrupt);
 
@@ -136,9 +154,9 @@ void SerialPort::initHardware(void)
     // Enable global interrupts.
     //
     EINT;
-
 }
 
+//#pragma CODE_SECTION(".TI.ramfunc");
 void SerialPort::sci_init_pin_rx(const uint32_t gpioPin, const uint32_t gpioCfg)
 {
     GPIO_setMasterCore(gpioPin, GPIO_CORE_CPU1);
@@ -148,6 +166,7 @@ void SerialPort::sci_init_pin_rx(const uint32_t gpioPin, const uint32_t gpioCfg)
     GPIO_setQualificationMode(gpioPin, GPIO_QUAL_ASYNC);
 }
 
+//#pragma CODE_SECTION(".TI.ramfunc");
 void SerialPort::sci_init_pin_tx(const uint32_t gpioPin, const uint32_t gpioCfg)
 {
     GPIO_setMasterCore(gpioPin, GPIO_CORE_CPU1);
@@ -157,16 +176,19 @@ void SerialPort::sci_init_pin_tx(const uint32_t gpioPin, const uint32_t gpioCfg)
     GPIO_setQualificationMode(gpioPin, GPIO_QUAL_ASYNC);
 }
 
+//#pragma CODE_SECTION(".TI.ramfunc");
 void SerialPort::send(const char *text)
 {
     SCI_writeCharArray(_sciBase, (uint16_t*)text, strlen(text));
 }
 
+//#pragma CODE_SECTION(".TI.ramfunc");
 void SerialPort::send(const unsigned char *msg, const uint32_t length)
 {
     SCI_writeCharArray(_sciBase, (uint16_t*)msg, length);
 }
 
+//#pragma CODE_SECTION(".TI.ramfunc");
 void SerialPort::rxisr(void)
 {
     int count = SCI_getRxFIFOStatus(_sciBase);
@@ -191,6 +213,7 @@ void SerialPort::rxisr(void)
     Interrupt_clearACKGroup(INTERRUPT_ACK_GROUP9);
 }
 
+//#pragma CODE_SECTION(".TI.ramfunc");
 void SerialPort::txisr(void)
 {
     // no-op right now
@@ -198,6 +221,7 @@ void SerialPort::txisr(void)
     Interrupt_clearACKGroup(INTERRUPT_ACK_GROUP9);
 }
 
+//#pragma CODE_SECTION(".TI.ramfunc");
 uint32_t SerialPort::numberBytesReady(void)
 {
     if (_bufferFull)
@@ -214,6 +238,7 @@ uint32_t SerialPort::numberBytesReady(void)
     }
 }
 
+//#pragma CODE_SECTION(".TI.ramfunc");
 unsigned char SerialPort::readByte(void)
 {
     unsigned char ch = _buffer[_bufferTail];

@@ -91,63 +91,9 @@ void main(void)
     Flash_initModule(FLASH0CTRL_BASE, FLASH0ECC_BASE, DEVICE_FLASH_WAITSTATES);
 #endif
 
+    // Initalize the control panel class with a reference to the
+    // user interface class
     controlPanel.init((IUserInterface *) &userInterface);
-
-/*
-    // Initialize System Control:
-    // PLL, WatchDog, enable Peripheral Clocks
-    InitSysCtrl();
-
-    // Disable CPU interrupts
-    DINT;
-
-    // Initialize the PIE control registers to their default state.
-    InitPieCtrl();
-
-    // Disable CPU interrupts and clear all CPU interrupt flags
-    IER = 0x0000;
-    IFR = 0x0000;
-
-    // Initialize the PIE vector table with pointers to shell Interrupt
-    // Service Routines (ISR) to help with debugging.
-    InitPieVectTable();
-
-    // Set up the CPU0 timer ISR
-    EALLOW;
-    PieVectTable.TIMER0_INT = &cpu_timer0_isr;
-    PieVectTable.SCIA_RX_INT = &cpu_scia_isr;
-    EDIS;
-
-    // initialize the CPU timer
-    InitCpuTimers();   // For this example, only initialize the Cpu Timers
-    ConfigCpuTimer(&CpuTimer0, CPU_CLOCK_MHZ, STEPPER_CYCLE_US);
-
-    // Use write-only instruction to set TSS bit = 0
-    CpuTimer0Regs.TCR.all = 0x4001;
-
-    // Initialize peripherals and pins
-    debug.initHardware();
-    spiBus.initHardware();
-    controlPanel.initHardware();
-    eeprom.initHardware();
-    stepperDrive.initHardware();
-    encoder.initHardware();
-
-    // Enable CPU INT1 which is connected to CPU-Timer 0
-    IER |= M_INT1;
-
-    // Enable TINT0 in the PIE: Group 1 interrupt 7
-    PieCtrlRegs.PIEIER1.bit.INTx7 = 1;
-
-    // ISR registers for SerialA // TODO -- refactor into SerialA class
-    PieCtrlRegs.PIECTRL.bit.ENPIE = 1;
-    PieCtrlRegs.PIEIER9.bit.INTx1 = 1;
-    IER = PIEACK_GROUP9;
-
-    // Enable global Interrupts and higher priority real-time debug events
-    EINT;
-    ERTM;
-*/
 
     // initialize board hardware
     Device_init();
@@ -160,7 +106,6 @@ void main(void)
     serialPortB.initHardware();
     stepperDrive.initHardware();
     encoder.initHardware();
-    //spiBus.initHardware();
     //eeprom.initHardware();
 
     // Disable CPU interrupts

@@ -60,11 +60,11 @@ const FEED_THREAD *UserInterface::loadFeedTable()
     return this->feedTable->current();
 }
 
-void UserInterface::setStatus(const char *msg, uint32_t seconds)
+/*void UserInterface::setStatus(const char *msg, uint32_t seconds)
 {
     controlPanel->setStatus(msg);
     this->messageClearCount = seconds * UI_REFRESH_RATE_HZ;
-}
+}*/
 
 //
 // Core user interface loop.  This is called at UI_REFRESH_RATE_HZ
@@ -81,7 +81,7 @@ void UserInterface :: loop( void )
                 controlPanel->selectPage(1);
                 this->welcomePage = false;
                 loadFeedTable();
-                this->setStatus("version 2.0", 5);
+                this->setStatus(VERSION_STRING, 5);
             }
 
             this->setStatus("ready", 0);
@@ -140,110 +140,6 @@ void UserInterface :: loop( void )
     // read input from the control panel
     controlPanel->checkForInput();
 
-    /*
-    if (this->power != controlPanel->_stepperPower)
-    {
-        this->power = controlPanel->_stepperPower;
-        GPIO_CLEAR_STEP;
-        GPIO_CLEAR_DIRECTION;
-        if (this->power)
-        {
-            GPIO_SET_ENABLE;
-            this->messageClearCount = 0;
-        }
-        else
-        {
-            GPIO_CLEAR_ENABLE;
-        }
-    }
-
-    if (this->metric != controlPanel->_mm)
-    {
-        this->metric = controlPanel->_mm;
-        newFeed = loadFeedTable();
-    }
-
-    if (this->thread != controlPanel->_thread)
-    {
-        this->thread = controlPanel->_thread;
-        newFeed = loadFeedTable();
-    }
-
-    if (this->reverse != controlPanel->_reverse)
-    {
-        this->reverse = controlPanel->_reverse;
-        core->setReverse(this->reverse);
-    }
-    */
-
-    /*
-    // respond to keypresses
-    if( keys.bit.IN_MM )
-    {
-        // toggles metric or inch mode
-        this->metric = ! this->metric;
-        newFeed = loadFeedTable();
-    }
-    if( keys.bit.FEED_THREAD )
-    {
-        // toggles threading or feed mode
-        this->thread = ! this->thread;
-        newFeed = loadFeedTable();
-    }
-    if( keys.bit.FWD_REV )
-    {
-        // toggles stepper direction
-        this->reverse = ! this->reverse;
-        // feed table hasn't changed, but we need to trigger an update
-        newFeed = loadFeedTable();
-    }
-    if( keys.bit.UP )
-    {
-        // changes feed rate
-        newFeed = feedTable->next();
-    }
-    if( keys.bit.DOWN )
-    {
-        // changes feed rate
-        newFeed = feedTable->previous();
-    }
-    if( keys.bit.SET )
-    {
-        // toggles showing spindle or leadscrew RPM
-        this->displaySpindleRpm = !this->displaySpindleRpm;
-        setMessage((this->displaySpindleRpm) ? &SETTINGS_MESSAGE_SPINDLE_RPM : &SETTINGS_MESSAGE_LEADSCREW_RPM);
-    }
-    if( keys.bit.POWER )
-    {
-        // toggles stepper enable
-        this->power = !this->power;
-        GPIO_CLEAR_STEP;
-        GPIO_CLEAR_DIRECTION;
-        if (this->power)
-        {
-            GPIO_SET_ENABLE;
-        }
-        else
-        {
-            GPIO_CLEAR_ENABLE;
-        }
-        EDIS;
-        // feed table hasn't changed, but we need to trigger an update
-        newFeed = loadFeedTable();
-    }
-    */
-
-    /*
-    // if we have changed the feed
-    if( newFeed != NULL ) {
-        // update the display
-        controlPanel->setFeedTable(this->feedTable);
-
-        // update the core
-        core->setFeed(newFeed);
-        core->setReverse(this->reverse);
-    }*/
-
 }
 
 void UserInterface::powerButton(bool powerOn)
@@ -254,6 +150,8 @@ void UserInterface::powerButton(bool powerOn)
     if (this->power)
     {
         GPIO_SET_ENABLE;
+        core->setReverse(this->reverse);
+        core->setFeed(this->feedTable->current());
         this->messageClearCount = 0;
     }
     else
@@ -266,18 +164,21 @@ void UserInterface::upButton(void)
 {
     const FEED_THREAD *feed = this->feedTable->next();
     controlPanel->setFeedRate(this->feedTable->index(), this->feedTable->current());
+    core->setFeed(feed);
 }
 
 void UserInterface::downButton(void)
 {
     const FEED_THREAD *feed = this->feedTable->previous();
     controlPanel->setFeedRate(this->feedTable->index(), this->feedTable->current());
+    core->setFeed(feed);
 }
 
 void UserInterface::selectFeed(uint32_t index)
 {
     const FEED_THREAD *feed = this->feedTable->select(index);
     controlPanel->setFeedRate(this->feedTable->index(), this->feedTable->current());
+    core->setFeed(feed);
 }
 
 void UserInterface::inchMm(bool metric)
@@ -319,6 +220,6 @@ void UserInterface::pageChanged(uint32_t pageId)
             this->controlPanel->setFeedRate(this->feedTable->index(), this->feedTable->current());
         }
         controlPanel->setSpindleRpm(core->getSpindleRPM());
-        this->setStatus("version 2.0", 5);
+        this->setStatus(VERSION_STRING, 5);
     }
 }
